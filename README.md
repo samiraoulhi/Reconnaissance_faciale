@@ -51,7 +51,7 @@ Les valeurs binaires sont ensuite converties en un nombre décimal attribué au 
 Le processus génère une nouvelle image représentant mieux les caractéristiques locales du visage.
 
 **Principal Components**
-![eigenfaces_opencv](visualization/lbp_labeling.png)
+![eigenfaces_opencv](visualization/lbp-labeling.png)
 
 5. Extraction des histogrammes :
 L'image transformée est divisée en plusieurs grilles à l'aide des paramètres Grid X et Grid Y.
