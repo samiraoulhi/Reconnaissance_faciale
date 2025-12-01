@@ -95,4 +95,4 @@ Grâce à OpenCV, la reconnaissance faciale devient accessible, même pour les d
 
 ---
 
-Vous pouvez compléter avec des exemples de code pour rendre le fichier plus interactif et pédagogique. Si vous voulez que j’ajoute une section dédiée au code Python, faites-le-moi savoir ! 😊
+
