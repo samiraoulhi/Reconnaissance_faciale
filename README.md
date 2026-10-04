@@ -1,98 +1,97 @@
-# **Introduction**  
-La reconnaissance faciale est un processus d'identification ou de vérification d'une personne en analysant les caractéristiques de son visage. Par exemple, tout comme nous reconnaissons une pomme en la voyant, nous identifions une personne en examinant son visage.  
+# Reconnaissance faciale LBPH sur Raspberry Pi
 
-# Fonctionnement de la Reconnaissance Faciale  
-1. **Apprentissage initial :**
-   Lorsqu'on rencontre quelqu'un pour la première fois, on observe des traits distinctifs comme les yeux, le nez ou la bouche. Ces données sont associées à un nom, entraînant ainsi notre "modèle mental" de reconnaissance.  
-   
-2. **Reconnaissance :**  
-   Lorsque cette personne est revue, on utilise ces informations apprises pour l'identifier immédiatement.  
+Système de contrôle d'accès par reconnaissance faciale : une caméra détecte un visage, un modèle **LBPH** (Local Binary Patterns Histograms) l'identifie, et un **servo-moteur** s'active lorsque la personne est reconnue.
 
-Dans le domaine informatique, ce processus est simulé en trois étapes : collecte des données, entraînement du modèle, et reconnaissance.
+## Principe
 
----
-
-# **Implémentation avec OpenCV**  
-OpenCV simplifie la reconnaissance faciale avec les étapes suivantes :  
-
-## **1. Collecte des données d'entraînement :**  
-   Recueillir des images des visages à reconnaître, associées à leurs étiquettes (par exemple, leurs noms).  
-
-## **2. Entraînement du modèle :**  
-   Ces images sont transmises au modèle de reconnaissance faciale pour qu'il apprenne à identifier chaque visage.  
-
-## **3. Reconnaissance :**  
-   Une fois entraîné, le modèle peut analyser de nouvelles images et reconnaître les visages appris.
-
----
-
-# **LBPH (Local Binary Patterns Histograms) :**  
-
-1. Paramètres principaux :
-L'algorithme LBPH utilise quatre paramètres importants :
-
-   -Rayon (Radius) : Définit le rayon autour du pixel central pour construire le motif binaire local (valeur par défaut : 1).
-
-   -Voisins (Neighbors) : Nombre de points échantillonnés pour créer le motif binaire circulaire (valeur par défaut : 8).
-
-   -Grille X (Grid X) : Nombre de cellules horizontales dans l'image (valeur par défaut : 8).
-
-   -Grille Y (Grid Y) : Nombre de cellules verticales dans l'image (valeur par défaut : 8).
-
-2. Entraînement de l'algorithme :
-L'algorithme est entraîné avec un ensemble d'images de visages, chaque image étant associée à un identifiant unique (ID ou nom). Les images d'une même personne doivent partager le même identifiant. Une fois l'entraînement terminé, le modèle peut reconnaître de nouveaux visages.
-
-3. Application de l'opération LBP :
-Une image en niveaux de gris est convertie en une nouvelle image mettant en valeur les caractéristiques faciales.
-Un glissement de fenêtre (par exemple, 3x3 pixels) est utilisé pour analyser chaque région de l'image.
-Le pixel central de la matrice sert de seuil :
-Les pixels voisins ayant une valeur supérieure ou égale au seuil sont codés en 1, les autres en 0.
-Les valeurs binaires sont ensuite converties en un nombre décimal attribué au pixel central.
-Le processus génère une nouvelle image représentant mieux les caractéristiques locales du visage.
-
-**Principal Components**
-![eigenfaces_opencv](visualization/lbp-labeling.png)
-
-5. Extraction des histogrammes :
-L'image transformée est divisée en plusieurs grilles à l'aide des paramètres Grid X et Grid Y.
-Pour chaque cellule de la grille, un histogramme est généré, représentant la distribution des intensités de pixels (0 à 255).
-Tous les histogrammes sont concaténés pour former un histogramme global caractérisant l'image entière.
-
-**Principal Components**
-![eigenfaces_opencv](visualization/extract.png)
-
-6. Reconnaissance faciale :
-L'algorithme compare l'histogramme d'une nouvelle image avec ceux des images d'entraînement.
-La distance entre les histogrammes (par exemple, distance euclidienne) est calculée pour trouver l'image la plus proche.
-Le résultat est l'ID correspondant à l'image la plus proche, accompagné d'une mesure de "confiance". Une faible valeur de confiance indique une meilleure correspondance.
-
----
-
-## **Étapes du Processus de Reconnaissance Faciale avec OpenCV**  
-
-1. **Préparer les données d'entraînement :**  
-   - Lire les images des visages à reconnaître et détecter les visages dans ces images.  
-   - Associer chaque visage à un label (nom ou ID).  
-
-2. **Entraîner le modèle :**  
-   - Utiliser un des algorithmes (par exemple, LBPH) pour entraîner le modèle à partir des données collectées.  
-
-3. **Tester le modèle :**  
-   - Fournir des images de test au modèle pour vérifier sa capacité à reconnaître correctement les visages.  
-
----
-
-## **Exemple de Visualisation**  
-Pour illustrer ce processus, voici un diagramme simplifié :  
 ```
-1. Données d'entraînement ➡️  2. Entraînement du modèle ➡️  3. Test et reconnaissance
+[1] Capture  -->  dataset/  -->  [2] Entraînement  -->  trainer/trainer.yml  -->  [3] Reconnaissance  -->  Servo
 ```
 
----
+1. **Capture** : détection du visage (cascade de Haar) et enregistrement de 100 images en niveaux de gris par utilisateur.
+2. **Entraînement** : lecture du dataset, extraction de l'ID depuis le nom de fichier, entraînement du modèle LBPH, sauvegarde dans `trainer.yml`.
+3. **Reconnaissance** : détection en temps réel, prédiction de l'ID et de la distance de confiance, activation du servo si la personne est reconnue.
 
-## **Conclusion**  
-Grâce à OpenCV, la reconnaissance faciale devient accessible, même pour les développeurs débutants. Les algorithmes comme EigenFaces, FisherFaces et LBPH permettent de répondre à différents besoins et contraintes, offrant ainsi des solutions adaptées pour des applications en conditions réelles.  
+## Matériel
 
----
+- Raspberry Pi (avec Raspberry Pi OS)
+- Caméra (Pi Camera ou webcam USB)
+- Servo-moteur (signal sur **GPIO 18**, alimentation 5 V adaptée)
 
+## Prérequis logiciels
 
+- Python 3
+- OpenCV avec le module `contrib` (nécessaire pour `cv2.face`)
+- NumPy, Pillow
+- RPi.GPIO (uniquement pour le script 3, sur Raspberry Pi)
+
+```bash
+pip install opencv-contrib-python numpy pillow
+# sur Raspberry Pi, RPi.GPIO est généralement préinstallé
+```
+
+## Structure du projet
+
+```
+.
+├── 01_capture.py            # Capture des visages
+├── 02_entrainement.py       # Entraînement LBPH
+├── 03_reconnaissance.py     # Reconnaissance + commande du servo
+├── dataset/                 # Images capturées (créé automatiquement)
+│   └── User_<ID>_<n>.jpg
+└── trainer/
+    └── trainer.yml          # Modèle entraîné (créé automatiquement)
+```
+
+## Utilisation
+
+### 1. Capturer les visages
+
+```bash
+python3 01_capture.py
+```
+
+- Saisir l'ID de l'utilisateur (1, 2, 3...).
+- Se placer face à la caméra : 100 images sont enregistrées automatiquement.
+- `ESC` pour arrêter avant la fin.
+- Répéter l'opération pour chaque personne, avec un ID différent.
+
+### 2. Entraîner le modèle
+
+```bash
+python3 02_entrainement.py
+```
+
+Le modèle est sauvegardé dans `trainer/trainer.yml`.
+
+### 3. Lancer la reconnaissance
+
+```bash
+python3 03_reconnaissance.py
+```
+
+- Le nom et le pourcentage de confiance s'affichent au-dessus du visage.
+- Si la personne est reconnue, le servo tourne pendant 1 seconde.
+- `ESC` pour quitter (le GPIO est nettoyé proprement).
+
+## Configuration
+
+| Paramètre | Fichier | Rôle |
+|---|---|---|
+| `names` | `03_reconnaissance.py` | Liste des noms, l'index correspond à l'ID (`0` = Inconnu) |
+| `SERVO_PIN` | `03_reconnaissance.py` | Broche GPIO du servo (BCM 18 par défaut) |
+| `scaleFactor`, `minNeighbors` | scripts 1 et 3 | Sensibilité de la détection Haar |
+| `confidence < 100` | `03_reconnaissance.py` | Seuil d'acceptation (plus la valeur est basse, meilleure est la correspondance) |
+| `count >= 100` | `01_capture.py` | Nombre d'images capturées par utilisateur |
+| `ChangeDutyCycle(7.5)` | `03_reconnaissance.py` | Angle du servo (à ajuster selon le montage) |
+
+## Limites et pistes d'amélioration
+
+- **Seuil de confiance** : avec LBPH, la valeur retournée est une *distance* (0 = parfait). Un seuil de 100 est très permissif ; des valeurs autour de 50 à 70 réduisent les faux positifs.
+- **Servo** : il est activé à chaque image où le visage est reconnu. Ajouter un délai (anti-rebond) évite les déclenchements répétés.
+- **Robustesse** : varier les conditions de capture (éclairage, angle, expressions) améliore nettement les résultats.
+- **Évolution possible** : remplacer Haar + LBPH par un détecteur et des embeddings issus du deep learning (par exemple un réseau de type FaceNet) pour plus de précision.
+
+## Technologies
+
+Python · OpenCV (Haar cascade, LBPH) · NumPy · Pillow · RPi.GPIO · Raspberry Pi
